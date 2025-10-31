@@ -14,6 +14,12 @@ import tradingagents.dataflows.interface as interface
 from tradingagents.default_config import DEFAULT_CONFIG
 from langchain_core.messages import HumanMessage
 
+# Import crypto tools
+try:
+    import tradingagents.dataflows.crypto_interface as crypto_interface
+except ImportError:
+    crypto_interface = None  # Crypto tools not available
+
 
 def create_msg_delete():
     def delete_messages(state):
@@ -417,3 +423,173 @@ class Toolkit:
         )
 
         return openai_fundamentals_results
+
+    # ==================== CRYPTO TOOLS ====================
+
+    @staticmethod
+    @tool
+    def get_crypto_price_data(
+        symbol: Annotated[str, "Crypto symbol (e.g., 'BTC', 'ETH', 'SOL')"],
+        days: Annotated[int, "Number of days of historical price data"] = 90,
+    ) -> str:
+        """
+        Get cryptocurrency price history (OHLCV data) and current market statistics.
+        Provides historical price data, market cap, volume, and price changes.
+        Args:
+            symbol (str): Cryptocurrency symbol (BTC, ETH, SOL, etc.)
+            days (int): Number of days of historical data (default: 90)
+        Returns:
+            str: Formatted string with market data and price history summary
+        """
+        if crypto_interface is None:
+            return "Crypto tools not available. Please install crypto dependencies."
+
+        return crypto_interface.get_crypto_price_data(symbol, days)
+
+    @staticmethod
+    @tool
+    def get_global_crypto_market() -> str:
+        """
+        Get global cryptocurrency market overview.
+        Provides total market cap, BTC/ETH dominance, 24h volume, and Fear & Greed Index.
+        Returns:
+            str: Formatted string with global market statistics
+        """
+        if crypto_interface is None:
+            return "Crypto tools not available. Please install crypto dependencies."
+
+        return crypto_interface.get_global_crypto_market()
+
+    @staticmethod
+    @tool
+    def get_crypto_fear_greed_index() -> str:
+        """
+        Get the Crypto Fear & Greed Index (0-100 scale).
+        Analyzes market sentiment from volatility, momentum, social media, and surveys.
+        Returns:
+            str: Formatted string with current index value and classification
+        """
+        if crypto_interface is None:
+            return "Crypto tools not available. Please install crypto dependencies."
+
+        return crypto_interface.get_crypto_fear_greed_index()
+
+    @staticmethod
+    @tool
+    def get_trending_cryptocurrencies(
+        limit: Annotated[int, "Number of trending coins to return"] = 10,
+    ) -> str:
+        """
+        Get currently trending cryptocurrencies based on search interest and social activity.
+        Useful for identifying emerging narratives or potential volatility.
+        Args:
+            limit (int): Number of trending coins to return (default: 10)
+        Returns:
+            str: Formatted list of trending cryptocurrencies with basic info
+        """
+        if crypto_interface is None:
+            return "Crypto tools not available. Please install crypto dependencies."
+
+        return crypto_interface.get_trending_cryptocurrencies(limit)
+
+    @staticmethod
+    @tool
+    def get_bitcoin_onchain_metrics() -> str:
+        """
+        Get Bitcoin blockchain metrics and network health indicators.
+        Provides hash rate, difficulty, transaction volume, mempool stats, and whale alerts.
+        Returns:
+            str: Formatted string with Bitcoin on-chain analytics
+        """
+        if crypto_interface is None:
+            return "Crypto tools not available. Please install crypto dependencies."
+
+        return crypto_interface.get_bitcoin_onchain_metrics()
+
+    @staticmethod
+    @tool
+    def get_ethereum_onchain_metrics() -> str:
+        """
+        Get Ethereum blockchain metrics and network activity.
+        Provides gas prices, network congestion, ETH supply, and staking statistics.
+        Returns:
+            str: Formatted string with Ethereum on-chain analytics
+        """
+        if crypto_interface is None:
+            return "Crypto tools not available. Please install crypto dependencies."
+
+        return crypto_interface.get_ethereum_onchain_metrics()
+
+    @staticmethod
+    @tool
+    def get_onchain_metrics(
+        symbol: Annotated[str, "Crypto symbol (e.g., 'BTC', 'ETH', 'SOL')"],
+    ) -> str:
+        """
+        Get on-chain metrics for any cryptocurrency.
+        Routes to specialized on-chain data based on the cryptocurrency.
+        Args:
+            symbol (str): Cryptocurrency symbol
+        Returns:
+            str: Formatted string with relevant on-chain metrics
+        """
+        if crypto_interface is None:
+            return "Crypto tools not available. Please install crypto dependencies."
+
+        return crypto_interface.get_onchain_metrics(symbol)
+
+    @staticmethod
+    @tool
+    def get_crypto_news(
+        symbol: Annotated[str, "Crypto symbol to filter news (optional)"] = None,
+        hours: Annotated[int, "Hours to look back for news"] = 24,
+        max_articles: Annotated[int, "Maximum number of articles to return"] = 10,
+    ) -> str:
+        """
+        Get latest cryptocurrency news from multiple trusted sources.
+        Aggregates from CoinTelegraph, Decrypt, CoinDesk, The Block, and Bitcoin Magazine.
+        Args:
+            symbol (str): Filter to specific cryptocurrency (e.g., "BTC", "ETH"), or None for general news
+            hours (int): How many hours back to fetch news (default: 24)
+            max_articles (int): Maximum articles to include (default: 10)
+        Returns:
+            str: Formatted news summary with titles, sources, links, and snippets
+        """
+        if crypto_interface is None:
+            return "Crypto tools not available. Please install crypto dependencies."
+
+        return crypto_interface.get_crypto_news(symbol, hours, max_articles)
+
+    @staticmethod
+    @tool
+    def get_regulatory_news() -> str:
+        """
+        Get recent regulatory and legal news affecting cryptocurrencies.
+        Filters for SEC, CFTC, ETF, legal actions, and compliance requirements.
+        Returns:
+            str: Formatted summary of regulatory developments from the past week
+        """
+        if crypto_interface is None:
+            return "Crypto tools not available. Please install crypto dependencies."
+
+        return crypto_interface.get_regulatory_news()
+
+    @staticmethod
+    @tool
+    def get_crypto_full_analysis(
+        symbol: Annotated[str, "Crypto symbol to analyze (e.g., 'BTC', 'ETH')"],
+        days: Annotated[int, "Days of price history"] = 30,
+    ) -> str:
+        """
+        Get comprehensive analysis combining price, on-chain, and news data.
+        Provides complete picture with market data, blockchain metrics, news, and global context.
+        Args:
+            symbol (str): Cryptocurrency to analyze
+            days (int): Days of price history to include
+        Returns:
+            str: Comprehensive formatted analysis report
+        """
+        if crypto_interface is None:
+            return "Crypto tools not available. Please install crypto dependencies."
+
+        return crypto_interface.get_crypto_full_analysis(symbol, days)
