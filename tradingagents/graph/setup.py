@@ -50,7 +50,8 @@ class GraphSetup:
                 - "market": Market analyst
                 - "social": Social media analyst
                 - "news": News analyst
-                - "fundamentals": Fundamentals analyst
+                - "fundamentals": Fundamentals analyst (for stocks)
+                - "onchain": On-chain analyst (for crypto, replaces fundamentals)
         """
         if len(selected_analysts) == 0:
             raise ValueError("Trading Agents Graph Setup Error: no analysts selected!")
@@ -87,6 +88,13 @@ class GraphSetup:
             )
             delete_nodes["fundamentals"] = create_msg_delete()
             tool_nodes["fundamentals"] = self.tool_nodes["fundamentals"]
+
+        if "onchain" in selected_analysts:
+            analyst_nodes["onchain"] = create_onchain_analyst(
+                self.quick_thinking_llm, self.toolkit
+            )
+            delete_nodes["onchain"] = create_msg_delete()
+            tool_nodes["onchain"] = self.tool_nodes["onchain"]
 
         # Create researcher and manager nodes
         bull_researcher_node = create_bull_researcher(

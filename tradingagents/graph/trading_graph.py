@@ -114,30 +114,40 @@ class TradingAgentsGraph:
         return {
             "market": ToolNode(
                 [
-                    # online tools
+                    # Stock tools (online)
                     self.toolkit.get_YFin_data_online,
                     self.toolkit.get_stockstats_indicators_report_online,
-                    # offline tools
+                    # Stock tools (offline)
                     self.toolkit.get_YFin_data,
                     self.toolkit.get_stockstats_indicators_report,
+                    # Crypto tools
+                    self.toolkit.get_crypto_price_data,
+                    self.toolkit.get_global_crypto_market,
+                    self.toolkit.get_crypto_fear_greed_index,
                 ]
             ),
             "social": ToolNode(
                 [
-                    # online tools
+                    # Stock tools (online)
                     self.toolkit.get_stock_news_openai,
-                    # offline tools
+                    # Stock tools (offline)
                     self.toolkit.get_reddit_stock_info,
+                    # Crypto tools
+                    self.toolkit.get_trending_cryptocurrencies,
+                    self.toolkit.get_crypto_news,
                 ]
             ),
             "news": ToolNode(
                 [
-                    # online tools
+                    # Stock tools (online)
                     self.toolkit.get_global_news_openai,
                     self.toolkit.get_google_news,
-                    # offline tools
+                    # Stock tools (offline)
                     self.toolkit.get_finnhub_news,
                     self.toolkit.get_reddit_news,
+                    # Crypto tools
+                    self.toolkit.get_crypto_news,
+                    self.toolkit.get_regulatory_news,
                 ]
             ),
             "fundamentals": ToolNode(
@@ -150,6 +160,16 @@ class TradingAgentsGraph:
                     self.toolkit.get_simfin_balance_sheet,
                     self.toolkit.get_simfin_cashflow,
                     self.toolkit.get_simfin_income_stmt,
+                ]
+            ),
+            "onchain": ToolNode(
+                [
+                    # Crypto on-chain analysis tools
+                    self.toolkit.get_bitcoin_onchain_metrics,
+                    self.toolkit.get_ethereum_onchain_metrics,
+                    self.toolkit.get_onchain_metrics,
+                    self.toolkit.get_crypto_price_data,
+                    self.toolkit.get_global_crypto_market,
                 ]
             ),
         }
