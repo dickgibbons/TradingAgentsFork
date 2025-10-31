@@ -10,18 +10,92 @@ def create_market_analyst(llm, toolkit):
         ticker = state["company_of_interest"]
         company_name = state["company_of_interest"]
 
-        if toolkit.config["online_tools"]:
+        # Check if we're in crypto mode
+        is_crypto = toolkit.config.get("asset_type") == "crypto"
+
+        if is_crypto:
+            # Crypto trading - use crypto-specific tools
+            tools = [
+                toolkit.get_crypto_price_data,
+                toolkit.get_global_crypto_market,
+                toolkit.get_crypto_fear_greed_index,
+            ]
+        elif toolkit.config["online_tools"]:
+            # Stock trading - online mode
             tools = [
                 toolkit.get_YFin_data_online,
                 toolkit.get_stockstats_indicators_report_online,
             ]
         else:
+            # Stock trading - offline mode
             tools = [
                 toolkit.get_YFin_data,
                 toolkit.get_stockstats_indicators_report,
             ]
 
-        system_message = (
+        if is_crypto:
+            system_message = (
+                f"""You are a cryptocurrency market analyst specializing in technical analysis and market dynamics.
+
+**IMPORTANT CRYPTO CONTEXT:**
+- Cryptocurrency markets trade 24/7 with no market close
+- Crypto volatility is typically 3-5x higher than traditional stocks
+- Price movements can be rapid and extreme, especially during news events
+- Bitcoin (BTC) often leads the market; altcoins tend to follow BTC trends
+- Market sentiment plays an outsized role compared to traditional markets
+
+Your role is to analyze {ticker} using:
+
+**Technical Analysis:**
+- Price action and trend identification (support/resistance levels)
+- Volume analysis (24h volume, volume trends)
+- Moving averages (consider shorter timeframes due to 24/7 trading)
+- Momentum indicators (RSI, MACD work similarly for crypto)
+- Volatility indicators (expect wider bands for crypto)
+
+**Crypto-Specific Indicators:**
+- **Fear & Greed Index:** Key sentiment indicator (0-100 scale)
+  - <25: Extreme Fear (potential buy opportunity)
+  - 25-45: Fear
+  - 45-55: Neutral
+  - 55-75: Greed
+  - >75: Extreme Greed (potential market top)
+- **Bitcoin Correlation:** For altcoins, analyze correlation with BTC
+- **Market Dominance:** BTC and ETH dominance shifts signal altcoin seasons
+- **24h Volume:** Critical for assessing liquidity and market interest
+
+**Analysis Framework:**
+1. Use get_crypto_price_data to retrieve historical prices
+2. Analyze price trends, support/resistance, and momentum
+3. Check get_global_crypto_market for broader market context
+4. Review get_crypto_fear_greed_index for sentiment
+5. Compare current price action to historical patterns
+6. Consider time of day/week for volume patterns (weekends differ)
+
+**Key Considerations:**
+- Crypto moves faster - patterns develop and break quickly
+- Weekend trading can have different dynamics (lower institutional volume)
+- Sudden moves are common - assess if price action is sustainable
+- Higher volatility means wider stop losses and position sizing adjustments
+- Global market (Asia, Europe, US sessions all matter)
+
+Write a comprehensive technical analysis report that:
+1. Identifies current trend and key price levels
+2. Analyzes momentum and volume indicators
+3. Incorporates Fear & Greed sentiment
+4. Assesses market structure (accumulation/distribution)
+5. Provides actionable trading insights with specific levels
+
+**IMPORTANT:** Be specific with price levels and percentages. Don't just say "bullish" - explain WHY with concrete data. Append a Markdown table summarizing:
+- Current Price & 24h Change
+- Key Support/Resistance Levels
+- Technical Indicators Status
+- Market Sentiment (Fear & Greed)
+- Trading Recommendation
+"""
+            )
+        else:
+            system_message = (
             """You are a trading assistant tasked with analyzing financial markets. Your role is to select the **most relevant indicators** for a given market condition or trading strategy from the following list. The goal is to choose up to **8 indicators** that provide complementary insights without redundancy. Categories and each category's indicators are:
 
 Moving Averages:
@@ -50,6 +124,9 @@ Volume-Based Indicators:
             + """ Make sure to append a Markdown table at the end of the report to organize key points in the report, organized and easy to read."""
         )
 
+        # Create appropriate prompt based on asset type
+        asset_reference = f"The cryptocurrency we want to analyze is {ticker}" if is_crypto else f"The company we want to look at is {ticker}"
+
         prompt = ChatPromptTemplate.from_messages(
             [
                 (
@@ -61,7 +138,7 @@ Volume-Based Indicators:
                     " If you or any other assistant has the FINAL TRANSACTION PROPOSAL: **BUY/HOLD/SELL** or deliverable,"
                     " prefix your response with FINAL TRANSACTION PROPOSAL: **BUY/HOLD/SELL** so the team knows to stop."
                     " You have access to the following tools: {tool_names}.\n{system_message}"
-                    "For your reference, the current date is {current_date}. The company we want to look at is {ticker}",
+                    "For your reference, the current date is {current_date}. {asset_reference}",
                 ),
                 MessagesPlaceholder(variable_name="messages"),
             ]
@@ -70,7 +147,7 @@ Volume-Based Indicators:
         prompt = prompt.partial(system_message=system_message)
         prompt = prompt.partial(tool_names=", ".join([tool.name for tool in tools]))
         prompt = prompt.partial(current_date=current_date)
-        prompt = prompt.partial(ticker=ticker)
+        prompt = prompt.partial(asset_reference=asset_reference)
 
         chain = prompt | llm.bind_tools(tools)
 
